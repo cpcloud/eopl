@@ -235,3 +235,18 @@ def test_sortp():
     k = 5
     x = random.sample(list(range(10)), k)
     nt.assert_equal(sortp(operator.gt, x), sorted(x, reverse=True))
+
+
+def test_car_cdr():
+    lst = list('abc')
+    s = 'a'
+    r = car_cdr(s, lst, 'fail')
+    e = car
+    nt.assert_equal(r, e)
+
+    lst = ['cat', 'lion', ['fish', 'dog', []], 'pig']
+    s = 'dog'
+    r = car_cdr(s, lst, 'fail')
+    e = compose(car, compose(cdr, compose(car, compose(cdr, cdr))))
+    rs = r(lst)
+    nt.assert_equal(rs, e(lst))

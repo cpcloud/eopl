@@ -241,7 +241,17 @@ def sort(lst):
 def sortp(pred, lst):
     if length(lst) <= 1:
         return lst
-    piv = list_ref(lst, length(lst) // 2)
+    piv = list_ref(lst, int(length(lst) / 2))
     lhs = filt(lambda x: pred(x, piv), lst)
     rhs = filt(lambda x: (not pred(x, piv)) and x != piv, lst)
     return concat(sortp(pred, lhs), cons(piv, sortp(pred, rhs)))
+
+
+def car_cdr(s, lst, errvalue):
+    if not lst:
+        return cdr
+    if eq(car(lst), s):
+        return car
+    if is_list_like(car(lst)):
+        return compose(car_cdr(s, car(lst), errvalue), car)
+    return compose(car_cdr(s, cdr(lst), errvalue), cdr)
