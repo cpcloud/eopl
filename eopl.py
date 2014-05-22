@@ -1,9 +1,5 @@
 import itertools
 import numbers
-import operator
-
-
-eq = operator.eq
 
 
 def isa(typ):
