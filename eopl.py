@@ -1,5 +1,9 @@
+import operator
+import collections
 import itertools
 import numbers
+from operator import eq
+from functools import partial
 
 
 def isa(typ):
@@ -8,6 +12,11 @@ def isa(typ):
 
 is_number = isa(numbers.Number)
 is_list = isa(list)
+is_list_like = lambda x: (not isinstance(x, basestring) and
+                          isinstance(x, collections.Iterable))
+
+
+#### utilities
 
 
 def head(lst, n):
@@ -40,9 +49,23 @@ def cdr(lst):
     return lst[1:]
 
 
+def cddr(lst):
+    return cdr(cdr(lst))
+
+
 def ncdr(n):
     return compose(*itertools.repeat(cdr, n))
 
+
+def cadr(lst):
+    return car(cdr(lst))
+
+
+def caddr(lst):
+    return car(cdr(cdr(lst)))
+
+
+#### 1.16
 
 def every(pred, lst):
     return (not lst) or (pred(car(lst)) and every(pred, cdr(lst)))
@@ -70,10 +93,6 @@ def invert(lst):
     if not lst:
         return []
     return concat([reverse(car(lst))], invert(cdr(lst)))
-
-
-def cadr(lst):
-    return car(cdr(lst))
 
 
 def concat(lst1, lst2):
@@ -138,3 +157,91 @@ def down(lst):
     if not cdr(lst):
         return [lst]
     return cons([car(lst)], down(cdr(lst)))
+
+
+def lsum(lst):
+    if not lst:
+        return 0
+    return car(lst) + lsum(cdr(lst))
+
+
+def lmap(f, lst):
+    if not lst:
+        return []
+    return cons(f(car(lst)), lmap(f, cdr(lst)))
+
+
+#### 1.17
+
+def flatten(lst):
+    """Flatten an arbitrarily nested list"""
+    if not lst:
+        return []
+    if not is_list_like(car(lst)):
+        return concat([car(lst)], flatten(cdr(lst)))
+    return concat(flatten(car(lst)), flatten(cdr(lst)))
+
+
+def count_occurrences(s, lst):
+    return length(filter_in(partial(eq, s), flatten(lst)))
+
+
+def merge(lst1, lst2):
+    if not lst1 and lst2:
+        return lst2
+    if not lst2 and lst1:
+        return lst1
+    if not (lst2 or lst1):
+        return []
+    if car(lst1) <= car(lst2):
+        return concat(cons(car(lst1), [car(lst2)]), merge(cdr(lst1),
+                                                          cdr(lst2)))
+    return concat(cons(car(lst2), [car(lst1)]), merge(cdr(lst1), cdr(lst2)))
+
+
+def up(lst):
+    if not lst:
+        return []
+    if not is_list_like(car(lst)):
+        return cons(car(lst), up(cdr(lst)))
+    return concat(car(lst), up(cdr(lst)))
+
+
+def swapper(a, b, lst):
+    if not lst:
+        return []
+    c = car(lst)
+    return cons(b if c == a else a if c == b else
+                swapper(a, b, c) if is_list_like(c) else c,
+                swapper(a, b, cdr(lst)))
+
+
+def path(x, bst):
+    if not bst:
+        return []
+    if eq(car(bst), x):
+        return []
+    if car(bst) < x:
+        return cons('right', path(x, caddr(bst)))
+    return cons('left', path(x, cadr(bst)))
+
+
+def filt(pred, lst):
+    if not lst:
+        return []
+    if not pred(car(lst)):
+        return filt(pred, cdr(lst))
+    return cons(car(lst), filt(pred, cdr(lst)))
+
+
+def sort(lst):
+    return sortp(operator.lt, lst)
+
+
+def sortp(pred, lst):
+    if length(lst) <= 1:
+        return lst
+    piv = list_ref(lst, length(lst) // 2)
+    lhs = filt(lambda x: pred(x, piv), lst)
+    rhs = filt(lambda x: (not pred(x, piv)) and x != piv, lst)
+    return concat(sortp(pred, lhs), cons(piv, sortp(pred, rhs)))

@@ -1,6 +1,7 @@
 import itertools
 import numbers
 import random
+import operator
 import nose.tools as nt
 from eopl import *
 
@@ -166,3 +167,71 @@ def test_down():
     r = down(x)
     e = list(map(lambda x: [x], x))
     nt.assert_equal(r, e)
+
+
+def test_count_occurrences():
+    x = ['a', [1, 2], 'd', [['d'], 'd', [[[['d']]]]]]
+    s = 'd'
+    r = count_occurrences(s, x)
+    e = 4
+    nt.assert_equal(r, e)
+
+
+def test_merge():
+    x, y = [1, 3, 5], [2, 4, 6]
+    r = merge(x, y)
+    e = list(range(1, 7))
+    nt.assert_equal(r, e)
+
+    x, y = [1, 3, 5], [3, 4, 6, 8]
+    r = merge(x, y)
+    e = [1, 3, 3, 4, 5, 6, 8]
+    nt.assert_equal(r, e)
+
+    x, y = [1, 3, 5, 9, 11], [3, 4, 6, 8]
+    r = merge(x, y)
+    e = [1, 3, 3, 4, 5, 6, 8, 9, 11]
+    nt.assert_equal(r, e)
+
+
+def test_up():
+    x = [[1, 2], [3, 4]]
+    nt.assert_equal(up(x), list(range(1, 5)))
+
+    x = ['a', [1, 2], 'd', [['d'], 'd', [[[['d']]]]]]
+    nt.assert_equal(up(down(x)), x)
+
+    x = [['x', ['y']], 'z']
+    nt.assert_equal(up(x), ['x', ['y'], 'z'])
+
+
+def test_swapper():
+    x = list('abcd')
+    r = swapper('a', 'd', x)
+    e = list('dbca')
+    nt.assert_equal(r, e)
+
+    x = [['x'], 'y', ['z', ['x']]]
+    r = swapper('x', 'y', x)
+    e = [['y'], 'x', ['z', ['y']]]
+    nt.assert_equal(r, e)
+
+
+def test_path():
+    x = [14, [7, [], [12, [], []]],
+         [26, [20, [17, [], []], []], [31, [], []]]]
+    r = path(17, x)
+    e = ['right', 'left', 'left']
+    nt.assert_equal(r, e)
+
+
+def test_sort():
+    k = 5
+    x = random.sample(list(range(10)), k)
+    nt.assert_equal(sort(x), sorted(x))
+
+
+def test_sortp():
+    k = 5
+    x = random.sample(list(range(10)), k)
+    nt.assert_equal(sortp(operator.gt, x), sorted(x, reverse=True))
