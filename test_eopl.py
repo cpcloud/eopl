@@ -6,21 +6,33 @@ import nose.tools as nt
 from eopl import *
 
 
-def test_is_number():
-    nt.assert_true(is_number(1.))
-    nt.assert_true(is_number(1))
-    nt.assert_true(is_number(1j))
-    nt.assert_false(is_number([]))
-    nt.assert_false(is_number(''))
-    nt.assert_false(is_number(object()))
+def test_numberp():
+    nt.assert_true(numberp(1.))
+    nt.assert_true(numberp(1))
+    nt.assert_true(numberp(1j))
+    nt.assert_false(numberp([]))
+    nt.assert_false(numberp(''))
+    nt.assert_false(numberp(object()))
 
 
-def test_is_list():
-    nt.assert_true(is_list([]))
-    nt.assert_true(is_list([1, 2, 3]))
-    nt.assert_true(is_list([1, 2, '3']))
-    nt.assert_false(is_list(1))
-    nt.assert_false(is_list('a'))
+def test_listp():
+    nt.assert_true(listp([]))
+    nt.assert_true(listp([1, 2, 3]))
+    nt.assert_true(listp([1, 2, '3']))
+    nt.assert_false(listp(1))
+    nt.assert_false(listp('a'))
+
+
+def test_list_likep():
+    nt.assert_true(list_likep([]))
+    nt.assert_true(list_likep([1, 2, 3]))
+    nt.assert_true(list_likep([1, 2, '3']))
+    nt.assert_true(list_likep(()))
+    nt.assert_true(list_likep({}))
+    nt.assert_false(list_likep(1))
+    nt.assert_false(list_likep('a'))
+    nt.assert_false(list_likep(object()))
+    nt.assert_false(list_likep(test_list_likep))
 
 
 def test_car():

@@ -9,10 +9,10 @@ def isa(typ):
     return lambda x: isinstance(x, typ)
 
 
-is_number = isa(numbers.Number)
-is_list = isa(list)
-is_list_like = lambda x: (not isinstance(x, basestring) and
-                          isinstance(x, collections.Iterable))
+numberp = isa(numbers.Number)
+listp = isa(list)
+list_likep = lambda x: (not isinstance(x, basestring) and
+                        isinstance(x, collections.Iterable))
 
 
 #### utilities
@@ -112,13 +112,13 @@ def filter_in(pred, lst):
 def length(x):
     if not x:
         return 0
-    return 1 + length(x[1:])
+    return 1 + length(cdr(x))
 
 
 def list_ref(x, i):
     """0-based list index"""
     assert 0 <= i < length(x)
-    if i == 0:
+    if not i:
         return car(x)
     return list_ref(cdr(x), i - 1)
 
@@ -175,7 +175,7 @@ def flatten(lst):
     """Flatten an arbitrarily nested list"""
     if not lst:
         return []
-    if not is_list_like(car(lst)):
+    if not list_likep(car(lst)):
         return concat([car(lst)], flatten(cdr(lst)))
     return concat(flatten(car(lst)), flatten(cdr(lst)))
 
@@ -200,7 +200,7 @@ def merge(lst1, lst2):
 def up(lst):
     if not lst:
         return []
-    if not is_list_like(car(lst)):
+    if not list_likep(car(lst)):
         return cons(car(lst), up(cdr(lst)))
     return concat(car(lst), up(cdr(lst)))
 
@@ -213,7 +213,7 @@ def swapper(a, b, lst):
         to_cons = b
     elif c == b:
         to_cons = a
-    elif is_list_like(c):
+    elif list_likep(c):
         to_cons = swapper(a, b, c)
     return cons(to_cons, swapper(a, b, cdr(lst)))
 
@@ -254,6 +254,6 @@ def car_cdr(s, lst, errvalue):
         return lambda x: errvalue
     if eq(car(lst), s):
         return car
-    if is_list_like(car(lst)):
+    if list_likep(car(lst)):
         return compose(car_cdr(s, car(lst), errvalue), car)
     return compose(car_cdr(s, cdr(lst), errvalue), cdr)
