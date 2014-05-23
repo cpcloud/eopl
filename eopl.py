@@ -64,7 +64,7 @@ caddr = manuf('caddr')
 #### 1.16
 
 def every(pred, lst):
-    return (not lst) or (pred(car(lst)) and every(pred, cdr(lst)))
+    return not lst or (pred(car(lst)) and every(pred, cdr(lst)))
 
 
 def exists(pred, lst):
@@ -245,7 +245,7 @@ def sortp(pred, lst):
         return lst
     piv = list_ref(lst, int(length(lst) / 2))
     lhs = filt(lambda x: pred(x, piv), lst)
-    rhs = filt(lambda x: (not pred(x, piv)) and x != piv, lst)
+    rhs = filt(lambda x: not pred(x, piv) and x != piv, lst)
     return concat(sortp(pred, lhs), cons(piv, sortp(pred, rhs)))
 
 
