@@ -250,3 +250,7 @@ def test_car_cdr():
     e = compose(car, compose(cdr, compose(car, compose(cdr, cdr))))
     rs = r(lst)
     nt.assert_equal(rs, e(lst))
+
+    lst = ['b', 'c']
+    r = car_cdr('a', lst, 'fail')
+    nt.assert_equal(r(lst), 'fail')

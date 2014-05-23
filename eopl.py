@@ -1,6 +1,5 @@
 import operator
 import collections
-import itertools
 import numbers
 from operator import eq
 from functools import partial
@@ -34,11 +33,19 @@ def compose2(f, g):
 
 
 def compose(*funcs):
+    if len(funcs) == 1:
+        return list(funcs).pop()
     return reduce(compose2, funcs)
 
 
 def cons(head, tail):
     return [head] + tail
+
+
+def manuf(s):
+    s = s.lstrip('c').rstrip('r')
+    d = {'a': car, 'd': cdr}
+    return reduce(compose2, map(d.__getitem__, s))
 
 
 def car(lst):
@@ -49,20 +56,9 @@ def cdr(lst):
     return lst[1:]
 
 
-def cddr(lst):
-    return cdr(cdr(lst))
-
-
-def ncdr(n):
-    return compose(*itertools.repeat(cdr, n))
-
-
-def cadr(lst):
-    return car(cdr(lst))
-
-
-def caddr(lst):
-    return car(cdr(cdr(lst)))
+cddr = manuf('cddr')
+cadr = manuf('cadr')
+caddr = manuf('caddr')
 
 
 #### 1.16
@@ -140,7 +136,9 @@ def product(los1, los2):
     product([1], [2, 3]) -> [[1, 2], [1, 3]]
     product([1, 2], [3, 4]) -> [[1, 3], [1, 4], [2, 3], [2, 4]]
     """
+    # TODO: extend to *args number of lists
     if not (los1 and los2):
+        # cartesian product of empty things is empty
         return []
     return cons([car(los1), car(los2)],
                 concat(product([car(los1)], cdr(los2)),
@@ -210,10 +208,14 @@ def up(lst):
 def swapper(a, b, lst):
     if not lst:
         return []
-    c = car(lst)
-    return cons(b if c == a else a if c == b else
-                swapper(a, b, c) if is_list_like(c) else c,
-                swapper(a, b, cdr(lst)))
+    to_cons = c = car(lst)
+    if c == a:
+        to_cons = b
+    elif c == b:
+        to_cons = a
+    elif is_list_like(c):
+        to_cons = swapper(a, b, c)
+    return cons(to_cons, swapper(a, b, cdr(lst)))
 
 
 def path(x, bst):
@@ -249,7 +251,7 @@ def sortp(pred, lst):
 
 def car_cdr(s, lst, errvalue):
     if not lst:
-        return cdr
+        return lambda x: errvalue
     if eq(car(lst), s):
         return car
     if is_list_like(car(lst)):
