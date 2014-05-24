@@ -207,3 +207,14 @@
     [(list? (car lst)) (compose (car-cdr s (car lst) errvalue) car)]
     [else
       (compose (car-cdr s (cdr lst) errvalue) cdr)]))
+
+
+(define (occurs-free? var expr)
+  (cond
+    [(symbol? expr) (eqv? var expr)]
+    [(eqv? (car expr) 'lambda)
+          (and (neq? (caadr expr) var)
+               (occurs-free? var (caddr expr)))]
+    [else
+      (or (occurs-free? var (cadr expr))
+          (occurs-free? var (car expr)))]))
