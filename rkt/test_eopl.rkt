@@ -20,7 +20,7 @@
     (test-equal? "eq" (duple 2 3.14) '(3.14 3.14)))
   (test-suite
     "test-rev"
-    (test-equal? "eq" (rev '(1 2 3)) '(3 2 1)))
+    (test-equal? "eq" (reverse '(1 2 3)) '(3 2 1)))
   (test-suite
     "test-invert"
     (test-equal? "eq"
@@ -49,11 +49,11 @@
     (test-equal? "len non empty" (length '(a b 3 4)) 4))
   (test-suite
     "test-lref"
-    (test-equal? "lref0" (lref (list 1 2 3 'a) 0) 1)
-    (test-equal? "lref end" (lref (list 1 2 3 'a) 3) 'a))
+    (test-equal? "lref0" (list-ref (list 1 2 3 'a) 0) 1)
+    (test-equal? "lref end" (list-ref (list 1 2 3 'a) 3) 'a))
   (test-suite
     "test-lset"
-    (test-equal? "" (lset (list 'a 1 '(d e)) 2 '(1 2)) '(a 1 (1 2))))
+    (test-equal? "" (list-set (list 'a 1 '(d e)) 2 '(1 2)) '(a 1 (1 2))))
   (test-suite
     "test-product"
     (let ((xys '((() ())

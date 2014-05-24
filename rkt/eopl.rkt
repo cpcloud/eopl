@@ -1,5 +1,6 @@
 #lang eopl
 
+
 (provide (all-defined-out))
 
 
@@ -35,39 +36,49 @@
   (if (exists null? (list los1 los2))
     empty
     (cons (list (car los1) (car los2))
-        (concat (product (take los1 1)
-                         (cdr los2))
+        (concat (product (take los1 1) (cdr los2))
                 (product (cdr los1) los2)))))
 
 
 (define (sum x)
-  (if (null? x)
-    0
-    (+ (car x) (sum (cdr x)))))
+  (cond
+    [(null? x) 0]
+    [else (+ (car x) (sum (cdr x)))]))
 
 
-(define (lmap f lst)
-  (if (null? lst)
-    '()
-    (cons (f (car lst)) (lmap f (cdr lst)))))
+(define (prod x)
+  (exp (sum (map log x))))
+
+
+(define (map f lst)
+  (cond
+    [(null? lst) empty]
+    [else (cons (f (car lst)) (map f (cdr lst)))]))
 
 
 (define (duple n x)
-  (if (zero? n)
-    '()
-    (cons x (duple (- n 1) x))))
+  (cond
+    [(zero? n) empty]
+    [else (cons x (duple (- n 1) x))]))
 
 
-(define (rev lst)
-  (if (null? lst)
-    '()
-    (concat (rev (cdr lst)) (list (car lst)))))
+(define (reverse lst)
+  (cond
+    [(null? lst) empty]
+    [(concat (reverse (cdr lst)) (take lst 1))]))
+
+
+(define (fold f initial lst)
+  (cond
+    [(= 1 (length lst)) (f (car lst) initial)]
+    [else
+      (f (car lst) (fold f initial (cdr lst)))]))
 
 
 (define (invert lst)
   (if (null? lst)
     '()
-    (concat (list (rev (car lst))) (invert (cdr lst)))))
+    (concat (list (reverse (car lst))) (invert (cdr lst)))))
 
 
 (define (filter-in pred lst)
@@ -78,28 +89,22 @@
       (cons (car lst) (filter-in pred (cdr lst))))))
 
 
-(define (lref x i)
+(define (list-ref x i)
   (if (zero? i)
     (car x)
-    (lref (cdr x) (- i 1))))
+    (list-ref (cdr x) (- i 1))))
 
 
-(define (lset lst n x)
+(define (list-set lst n x)
   (if (zero? n)
     (cons x (cdr lst))
-    (cons (car lst) (lset (cdr lst) (- n 1) x))))
+    (cons (car lst) (list-set (cdr lst) (- n 1) x))))
 
 
 (define (down lst)
   (if (null? (cdr lst))
     (list lst)
     (cons (take lst 1) (down (cdr lst)))))
-
-
-(define (ifelse expr this that)
-  (if expr
-    this
-    that))
 
 
 (define (count-in s lst)
@@ -172,8 +177,12 @@
   (sortp < lst))
 
 
-(define (neq? a b)
-  (not (eq? a b)))
+(define (negate f)
+  (lambda rst (not (apply f rst))))
+
+
+(define neq? (negate eq?))
+(define notnull? (negate null?))
 
 
 (define (sortp pred lst)
