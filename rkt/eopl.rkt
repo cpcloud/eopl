@@ -216,5 +216,17 @@
           (and (neq? (caadr expr) var)
                (occurs-free? var (caddr expr)))]
     [else
-      (or (occurs-free? var (cadr expr))
-          (occurs-free? var (car expr)))]))
+      (or (occurs-free? var (car expr))
+          (occurs-free? var (cadr expr)))]))
+
+
+(define (occurs-bound? var expr)
+  (cond
+    [(symbol? expr) #f]
+    [(eqv? (car expr) 'lambda)
+     (or (occurs-bound? var (caddr expr))
+         (and (eqv? var (caadr expr))
+              (occurs-free? var (caadr expr))))]
+    [else
+      (or (occurs-bound? var (car expr))
+          (occurs-bound? var (cadr expr)))]))

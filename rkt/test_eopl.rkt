@@ -118,6 +118,17 @@
            (s 'dog)
            (r (car-cdr s lst 'fail))
            (e (compose car (compose cdr (compose car (compose cdr cdr))))))
-      (test-equal? "nested" (e lst) (r lst)))))
+      (test-equal? "nested" (e lst) (r lst))))
+  (test-suite
+    "test-occurs-free?"
+    (test-true "basic true" (occurs-free? 'a '((lambda (x) x) a)))
+    (test-false "basic false" (occurs-free? 'x '((lambda (x) x) a)))
+    (test-false "no variable" (occurs-free? 'b '(lambda (x) x)))
+    (test-true "free" (occurs-free? 'x '((lambda (x) x) x))))
+  (test-suite
+    "test-occurs-bound?"
+    (test-true "true" (occurs-bound? 'x '(lambda (x) x)))
+    (test-false "false" (occurs-bound? 'x '((lambda (y) y) x)))
+    (test-true "bound" (occurs-bound? 'x '((lambda (x) x) x)))))
 
 (run-tests test-eopl)
