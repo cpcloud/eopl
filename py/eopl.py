@@ -176,7 +176,7 @@ def flatten(lst):
     if not lst:
         return []
     if not list_likep(car(lst)):
-        return concat([car(lst)], flatten(cdr(lst)))
+        return cons(car(lst), flatten(cdr(lst)))
     return concat(flatten(car(lst)), flatten(cdr(lst)))
 
 
