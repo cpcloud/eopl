@@ -121,14 +121,29 @@
       (test-equal? "nested" (e lst) (r lst))))
   (test-suite
     "test-occurs-free?"
+    (test-true "single vars are free" (occurs-free? 'a 'a))
     (test-true "basic true" (occurs-free? 'a '((lambda (x) x) a)))
     (test-false "basic false" (occurs-free? 'x '((lambda (x) x) a)))
     (test-false "no variable" (occurs-free? 'b '(lambda (x) x)))
-    (test-true "free" (occurs-free? 'x '((lambda (x) x) x))))
+    (test-true "free" (occurs-free? 'x '((lambda (x) x) x)))
+    (test-true "if-true" (occurs-free? 'x '(if (x) a y)))
+    (test-false "if-false" (occurs-free? 'x '(if (y) z b)))
+    (test-true "if-true" (occurs-free? 'x '(if (if (if (y) x e) f g) z b)))
+    (test-false "if-true" (occurs-free? 'y '(if (if (if (x) d e) f g) z b))))
   (test-suite
     "test-occurs-bound?"
     (test-true "true" (occurs-bound? 'x '(lambda (x) x)))
     (test-false "false" (occurs-bound? 'x '((lambda (y) y) x)))
-    (test-true "bound" (occurs-bound? 'x '((lambda (x) x) x)))))
+    (test-true "bound" (occurs-bound? 'x '((lambda (x) x) x))))
+  (test-suite
+    "test-vector-index"
+    (test-equal? "1" (vector-index (lambda (x) (eqv? x 'c)) '#(a b c d)) 2)
+    (test-equal? "2" (vector-ref '#(a b c) (vector-index (lambda (x) (eqv? x
+                                                                           'b))
+                                                         #(a b c))) 'b)
+    (test-false "not there" (vector-index (lambda (x) (eqv? x 'c)) #(1 2 3))))
+  (test-suite
+    "test-vector-sum"
+    (test-equal? "1" (vector-sum #(1 2 3)) 6)))
 
 (run-tests test-eopl)
