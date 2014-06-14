@@ -4,40 +4,20 @@
 (provide (all-defined-out))
 
 
-(define (every pred lst)
-  (or (null? lst) (and (pred (car lst)) (every pred (cdr lst)))))
-
-
-(define (exists pred lst)
-  (and (not (null? lst)) (or (pred (car lst)) (exists pred (cdr lst)))))
-
-
-(define (concat lst1 lst2)
-  (cond
-    [(and (null? lst1) (null? lst2)) empty]
-    [(null? lst1) lst2]
-    [(null? lst2) lst1]
-    [else (cons (car lst1) (concat (cdr lst1) lst2))]))
-
-
 (define (length x)
   (if (null? x)
     0
     (+ 1 (length (cdr x)))))
 
 
+(define (sub1 n)
+  (- n 1))
+
+
 (define (take lst n)
   (if (zero? n)
     empty
-    (cons (car lst) (take (cdr lst) (- n 1)))))
-
-
-(define (product los1 los2)
-  (if (exists null? (list los1 los2))
-    empty
-    (cons (list (car los1) (car los2))
-        (concat (product (take los1 1) (cdr los2))
-                (product (cdr los1) los2)))))
+    (cons (car lst) (take (cdr lst) (sub1 n)))))
 
 
 (define (sum x)
@@ -56,16 +36,11 @@
     [else (cons (f (car lst)) (map f (cdr lst)))]))
 
 
-(define (duple n x)
-  (cond
-    [(zero? n) empty]
-    [else (cons x (duple (- n 1) x))]))
+(define (negate f)
+  (lambda rst (not (apply f rst))))
 
 
-(define (reverse lst)
-  (cond
-    [(null? lst) empty]
-    [(concat (reverse (cdr lst)) (take lst 1))]))
+(define notlist? (negate list?))
 
 
 (define (fold f initial lst)
@@ -75,15 +50,96 @@
       (f (car lst) (fold f initial (cdr lst)))]))
 
 
+(define (count-in s lst)
+  (if (null? lst)
+    0
+    (+ (if (equal? (car lst) s) 1 0) (count-in s (cdr lst)))))
+
+
+(define (take1 lst)
+  (take lst 1))
+
+
+(define (vector-sum v)
+  (letrec
+    ((partial-sum
+       (lambda (n)
+         (if (zero? n)
+           0
+           (+ (vector-ref v (sub1 n))
+              (partial-sum (sub1 n)))))))
+    (partial-sum (vector-length v))))
+
+
+(define (vector-index pred v)
+  (letrec
+    ([idxer
+       (lambda (n)
+         (cond
+           [(= n -1) #f]
+           [(pred (vector-ref v n)) n]
+           [else (idxer (sub1 n))]))])
+    (idxer (sub1 (vector-length v)))))
+
+
+(define (concat lst1 lst2)
+  (cond
+    [(and (null? lst1) (null? lst2)) empty]
+    [(null? lst1) lst2]
+    [(null? lst2) lst1]
+    [else (cons (car lst1) (concat (cdr lst1) lst2))]))
+
+
+(define neq? (negate eq?))
+(define notnull? (negate null?))
+
+
+(define (filter pred lst)
+  (cond
+    [(null? lst) empty]
+    [(not (pred (car lst))) (filter pred (cdr lst))]
+    [else
+      (cons (car lst) (filter pred (cdr lst)))]))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; EXERCISES ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define (every pred lst)
+  (or (null? lst) (and (pred (car lst)) (every pred (cdr lst)))))
+
+
+(define (exists pred lst)
+  (and (notnull? lst) (or (pred (car lst)) (exists pred (cdr lst)))))
+
+
+(define (product los1 los2)
+  (if (exists null? (list los1 los2))
+    empty
+    (cons (list (car los1) (car los2))
+        (concat (product (take los1 1) (cdr los2))
+                (product (cdr los1) los2)))))
+
+
+(define (duple n x)
+  (cond
+    [(zero? n) empty]
+    [else (cons x (duple (sub1 n) x))]))
+
+
+(define (reverse lst)
+  (cond
+    [(null? lst) empty]
+    [(concat (reverse (cdr lst)) (take1 lst))]))
+
+
 (define (invert lst)
   (if (null? lst)
-    '()
+    empty
     (concat (list (reverse (car lst))) (invert (cdr lst)))))
 
 
 (define (filter-in pred lst)
   (if (null? lst)
-    '()
+    empty
     (if (not (pred (car lst)))
       (filter-in pred (cdr lst))
       (cons (car lst) (filter-in pred (cdr lst))))))
@@ -92,31 +148,25 @@
 (define (list-ref x i)
   (if (zero? i)
     (car x)
-    (list-ref (cdr x) (- i 1))))
+    (list-ref (cdr x) (sub1 i))))
 
 
 (define (list-set lst n x)
   (if (zero? n)
     (cons x (cdr lst))
-    (cons (car lst) (list-set (cdr lst) (- n 1) x))))
+    (cons (car lst) (list-set (cdr lst) (sub1 n) x))))
 
 
 (define (down lst)
   (if (null? (cdr lst))
     (list lst)
-    (cons (take lst 1) (down (cdr lst)))))
-
-
-(define (count-in s lst)
-  (if (null? lst)
-    0
-    (+ (if (equal? (car lst) s) 1 0) (count-in s (cdr lst)))))
+    (cons (take1 lst) (down (cdr lst)))))
 
 
 (define (flatten lst)
   (if (null? lst)
     empty
-    (if (not (list? (car lst)))
+    (if (notlist? (car lst))
       (cons (car lst) (flatten (cdr lst)))
       (concat (flatten (car lst)) (flatten (cdr lst))))))
 
@@ -127,20 +177,21 @@
 
 (define (merge lst1 lst2)
   (cond
-    [(and (null? lst1) (not (null? lst2))) lst2]
-    [(and (null? lst2) (not (null? lst1))) lst1]
+    [(and (null? lst1) (notnull? lst2)) lst2]
+    [(and (null? lst2) (notnull? lst1)) lst1]
     [(every null? (list lst1 lst2)) empty]
     [(<= (car lst1) (car lst2))
-     (concat (cons (car lst1) (take lst2 1)) (merge (cdr lst1) (cdr lst2)))]
+     (concat (cons (car lst1) (take1 lst2)) (merge (cdr lst1) (cdr lst2)))]
     [else
-      (concat (cons (car lst2) (take lst1 1)) (merge (cdr lst1) (cdr lst2)))]))
+      (concat (cons (car lst2) (take1 lst1)) (merge (cdr lst1) (cdr lst2)))]))
 
 
 (define (up lst)
   (cond
     [(null? lst) empty]
-    [(not (list? (car lst))) (cons (car lst) (up (cdr lst)))]
-    [else (concat (car lst) (up (cdr lst)))]))
+    [(notlist? (car lst)) (cons (car lst) (up (cdr lst)))]
+    [else
+      (concat (car lst) (up (cdr lst)))]))
 
 
 (define (swapper a b lst)
@@ -162,27 +213,12 @@
     [(null? bst) empty]
     [(eq? (car bst) x) empty]
     [(< (car bst) x) (cons 'right (path x (caddr bst)))]
-    [else (cons 'left (path x (cadr bst)))]))
-
-
-(define (filter pred lst)
-  (cond
-    [(null? lst) empty]
-    [(not (pred (car lst))) (filter pred (cdr lst))]
     [else
-      (cons (car lst) (filter pred (cdr lst)))]))
+      (cons 'left (path x (cadr bst)))]))
 
 
 (define (my-sort lst)
   (sortp < lst))
-
-
-(define (negate f)
-  (lambda rst (not (apply f rst))))
-
-
-(define neq? (negate eq?))
-(define notnull? (negate null?))
 
 
 (define (sortp pred lst)
@@ -209,24 +245,73 @@
       (compose (car-cdr s (cdr lst) errvalue) cdr)]))
 
 
+(define (isin x lst)
+  (cond
+    [(null? lst) #f]
+    [(equal? x (car lst)) #t]
+    [else
+      (isin x (cdr lst))]))
+
+
+(define second cadr)
+(define third caddr)
+
+
+(define (any lst)
+  (exists (lambda (x) (eq? x #t)) lst))
+
+
+(define (all lst)
+  (every (lambda (x) (eq? x #t)) lst))
+
+
 (define (occurs-free? var expr)
   (cond
     [(symbol? expr) (eqv? var expr)]
+    [(eqv? (car expr) 'if)
+     (any (map (lambda (x) (occurs-free? var x)) (cdr expr)))]
+    [(eqv? (car expr) 'let)
+     (and (not (isin var (map car (second expr))))
+          (any (map (lambda (x) (occurs-free? var x))
+                    (map second (second expr)))))]
+    [(eqv? (car expr) 'set!)
+     (or (eqv? var (second expr)) (occurs-free? var (third expr)))]
     [(eqv? (car expr) 'lambda)
-          (and (neq? (caadr expr) var)
-               (occurs-free? var (caddr expr)))]
+          (and (neq? (third expr) var)
+               (occurs-free? var (third expr)))]
+    [(symbol? (car expr)) (occurs-free? var (car expr))]
     [else
       (or (occurs-free? var (car expr))
-          (occurs-free? var (cadr expr)))]))
+          (occurs-free? var (second expr)))]))
+
+
+(define (partial< f . fixed-args)
+  (lambda unfixed-args (apply f (append unfixed-args fixed-args))))
+
+(define (partial> f . fixed-args)
+  (lambda unfixed-args (apply f (append fixed-args unfixed-args))))
 
 
 (define (occurs-bound? var expr)
   (cond
     [(symbol? expr) #f]
+    [(eqv? (car expr) 'if)
+     (exists (map (partial> occurs-bound? var) (cdr expr)))]
+    [(eqv? (car expr) 'let)
+     (or (isin var (map (car (second expr))))
+          (exists (map (partial> occurs-bound? var) (second expr))))]
     [(eqv? (car expr) 'lambda)
-     (or (occurs-bound? var (caddr expr))
+     (or (occurs-bound? var (third expr))
          (and (eqv? var (caadr expr))
               (occurs-free? var (caadr expr))))]
     [else
       (or (occurs-bound? var (car expr))
-          (occurs-bound? var (cadr expr)))]))
+          (occurs-bound? var (second expr)))]))
+
+
+(define (free-vars expr)
+  empty)
+
+
+(define (bound-vars expr)
+  empty)
